@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import OverlayMenu from './OverlayMenu';
 import Logo from "../assets/tdLogo.png";
 import { FiMenu } from "react-icons/fi";
@@ -7,7 +7,57 @@ function Navber() {
 
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(true);
+  const [forceVisible, setForceVisible] = useState(false);
+  const lastScrollY = useRef(0);
+  const timerId = useRef(null);
+
+  useEffect(() => {
+    const homeSetion = document.querySelector("#home");
+    const observer = new IntersectionObserver(
+
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setForceVisible(true);
+          setVisible(true);
+        } else {
+          setForceVisible(false);
+          //setVisible(false)
+        }
+
+      }, { threshold: 0.1 }
+    )
+    if (homeSetion) observer.observer(homeSetion);
+    return () => {
+      if (homeSetion) observer.unobserve(homeSetion)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handelScoll = () => {
+      if (forceVisible) {
+        setVisible(true);
+        return
+      }
+      const currentScollY = window.scrollY;
+      if (currentScollY > lastScrollY) {
+        setVisible(false)
+      }
+      else {
+        setVisible(true);
+        if (timerId.current) clearTimeout(timerId.current);
+        timerId.current = setTimeout(() => {
+          setVisible(false)
+        }, 3000);
+      }
+      lastScrollY.current = currentScollY
+    }
+    window.addEventListener("scroll", handelScoll, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", handelScoll);
+      if (timerId.current) clearTimeout(timerId.current);
+    }
+  }, [forceVisible])
   return (
     //Last 1.08 min
     <>
@@ -31,8 +81,8 @@ function Navber() {
       px-5 py-2 rounded-full font-medium  shadow-lg hover:opacity-90  transition-opacity duration-300'> Reach Out</a>
         </div>
       </nav>
-    
-      <OverlayMenu isOpen={menuOpen}  onClose={()=>setMenuOpen(false)}/>
+
+      <OverlayMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   )
 }
