@@ -27,7 +27,7 @@ function Navber() {
 
       }, { threshold: 0.1 }
     )
-    if (homeSetion) observer.observer(homeSetion);
+    if (homeSetion) observer.observe(homeSetion);
     return () => {
       if (homeSetion) observer.unobserve(homeSetion)
     }
